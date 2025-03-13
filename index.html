@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Language Translator</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(to right, #2c3e50, #4ca1af);
+            color: white;
+        }
+        input, button {
+            margin: 10px;
+            padding: 12px;
+            font-size: 18px;
+            border-radius: 5px;
+            border: none;
+        }
+        input {
+            width: 300px;
+        }
+        button {
+            background: #e74c3c;
+            color: white;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover {
+            background: #c0392b;
+        }
+        #loading-bar {
+            width: 100%;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.3);
+            margin: 20px 0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        #progress {
+            height: 100%;
+            width: 0%;
+            background: #2ecc71;
+            transition: width 0.3s;
+        }
+        .translation {
+            margin: 10px auto;
+            padding: 15px;
+            width: 60%;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        h2, h3 {
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>🌍 Multi-Language Translator 🌎</h2>
+    <input type="text" id="textInput" placeholder="Enter text..." />
+    <input type="number" id="numTranslations" placeholder="Times to Translate" min="1" value="10" max="130" />
+    <button onclick="startTranslation()">🔄 Translate</button>
+
+    <div id="loading-bar"><div id="progress"></div></div>
+
+    <h3>📝 Translations:</h3>
+    <div id="output"></div>
+
+    <script>
+        const languages = [
+    { name: "French", code: "fr" }, { name: "Spanish", code: "es" }, { name: "German", code: "de" },
+    { name: "Italian", code: "it" }, { name: "Japanese", code: "ja" }, { name: "Chinese (Simplified)", code: "zh-CN" },
+    { name: "Chinese (Traditional)", code: "zh-TW" }, { name: "Russian", code: "ru" }, { name: "Arabic", code: "ar" },
+    { name: "Hindi", code: "hi" }, { name: "Portuguese", code: "pt" }, { name: "Korean", code: "ko" },
+    { name: "Dutch", code: "nl" }, { name: "Greek", code: "el" }, { name: "Turkish", code: "tr" },
+    { name: "Swedish", code: "sv" }, { name: "Vietnamese", code: "vi" }, { name: "Thai", code: "th" },
+    { name: "Polish", code: "pl" }, { name: "Finnish", code: "fi" }, { name: "Czech", code: "cs" },
+    { name: "Hungarian", code: "hu" }, { name: "Danish", code: "da" }, { name: "Romanian", code: "ro" },
+    { name: "Ukrainian", code: "uk" }, { name: "Bengali", code: "bn" }, { name: "Indonesian", code: "id" },
+    { name: "Malay", code: "ms" }, { name: "Filipino", code: "tl" }, { name: "Norwegian", code: "no" },
+    { name: "Serbian", code: "sr" }, { name: "Croatian", code: "hr" }, { name: "Slovak", code: "sk" },
+    { name: "Bulgarian", code: "bg" }, { name: "Lithuanian", code: "lt" }, { name: "Latvian", code: "lv" },
+    { name: "Estonian", code: "et" }, { name: "Swahili", code: "sw" }, { name: "Haitian Creole", code: "ht" },
+    { name: "Persian", code: "fa" }, { name: "Pashto", code: "ps" }, { name: "Urdu", code: "ur" },
+    { name: "Maltese", code: "mt" }, { name: "Icelandic", code: "is" }, { name: "Georgian", code: "ka" },
+    { name: "Basque", code: "eu" }, { name: "Armenian", code: "hy" }, { name: "Tamil", code: "ta" },
+    { name: "Telugu", code: "te" }, { name: "Kannada", code: "kn" }, { name: "Marathi", code: "mr" },
+    { name: "Gujarati", code: "gu" }, { name: "Punjabi", code: "pa" }, { name: "Burmese", code: "my" },
+    { name: "Mongolian", code: "mn" }, { name: "Lao", code: "lo" }, { name: "Khmer", code: "km" },
+    { name: "Maori", code: "mi" }, { name: "Samoan", code: "sm" }, { name: "Tongan", code: "to" }
+];
+
+        async function translateText(text, targetLang) {
+            try {
+                const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("Translation API request failed");
+                const data = await response.json();
+                return data[0]?.[0]?.[0] || "(Translation unavailable)";
+            } catch (error) {
+                console.error("Error translating:", error);
+                return "(Error in translation)";
+            }
+        }
+
+        async function startTranslation() {
+            const inputText = document.getElementById("textInput").value;
+            let numTranslations = parseInt(document.getElementById("numTranslations").value);
+
+            if (!inputText) return alert("Please enter text to translate!");
+            if (numTranslations < 1 || numTranslations > languages.length) {
+                return alert(`Enter a number between 1 and ${languages.length}`);
+            }
+
+            const outputDiv = document.getElementById("output");
+            outputDiv.innerHTML = "";
+            const progressBar = document.getElementById("progress");
+            progressBar.style.width = "0%";
+            let translatedText = inputText;
+
+            for (let i = 0; i < numTranslations; i++) {
+                translatedText = await translateText(translatedText, languages[i].code);
+                outputDiv.innerHTML += `<div class="translation"><strong>${languages[i].name}:</strong> ${translatedText}</div>`;
+                progressBar.style.width = `${((i + 1) / numTranslations) * 100}%`;
+            }
+
+            const finalText = await translateText(translatedText, "en");
+            outputDiv.innerHTML += `<div class="translation"><strong>Final English:</strong> ${finalText}</div>`;
+            progressBar.style.width = "100%";
+        }
+    </script>
+</body>
+</html>
